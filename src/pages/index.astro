@@ -5,6 +5,17 @@ import TableUsers from "../components/tableUsers";
 ---
 
 <Layout>
+  <!-- Botón existente para crear usuario -->
+  <div class="w-full p-2 border border-gray-200 rounded-lg flex flex-col">
+    <button
+      id="button-create-user"
+      class="text-lg text-gray-700 font-bold border-gray-200 rounded-lg p-2 bg-gray-200 place-items-end place-self-end cursor-pointer"
+      >Nuevo usuario</button
+    >
+  </div>
+
+  <TableUsers client:load />
+
   <script>
     import { auth } from "../firebase";
     import createUser from "../utils/api/users/createUsers";
@@ -28,20 +39,9 @@ import TableUsers from "../components/tableUsers";
       }
     }
 
-  
     document.addEventListener("DOMContentLoaded", () => {
       const button = document.getElementById("button-create-user");
       button?.addEventListener("click", insertNewUser);
     });
   </script>
-
-  <div class="w-full p-2 border border-gray-200 rounded-lg flex flex-col">
-    <button
-      id="button-create-user"
-      class="text-lg text-gray-700 font-bold border-gray-200 rounded-lg p-2 bg-gray-200 place-items-end place-self-end cursor-pointer"
-      >Nuevo usuario</button
-    >
-  </div>
-
-  <TableUsers client:load />
 </Layout>
