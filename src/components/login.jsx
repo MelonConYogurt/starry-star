@@ -1,116 +1,215 @@
-//React imports
 import "../styles/global.css";
 import { useState } from "react";
-
-//Lib for cookies
+import { Mail, Lock, Eye, EyeOff, Leaf } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 import Cookies from "js-cookie";
-
-//Firabase imports
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-export default function LoginComponent() {
+export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function handlehtmlFormData(e) {
+  function handleChange(e) {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
-    setError("");
-    setSuccess("");
   }
 
-  async function LoginUser(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setLoading(true);
+
     if (!formData.email || !formData.password) {
-      setError("Por favor, completa todos los campos.");
+      toast.error("Por favor, completa todos los campos.");
+      setLoading(false);
       return;
     }
+
     try {
       const userCredentials = await signInWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-      setSuccess("¡Inicio de sesión exitoso!");
+      const user = userCredentials.user;
+
+      const token = await user.getIdToken();
+
+      const res = await fetch(
+        `http://localhost:3000/api/usuarios/byFirebaseUid/${user.uid}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!res.ok)
+        throw new Error("No se pudo obtener la información del usuario.");
+
+      const backendUser = await res.json();
+      const perfil = backendUser?.perfilId?.nombre || "Usuario";
+
+      Cookies.set(
+        "user",
+        JSON.stringify({
+          firebase: { uid: user.uid, email: user.email },
+          backend: backendUser,
+          token,
+          perfil,
+        }),
+        { expires: 1 }
+      );
+
+      toast.success("¡Inicio de sesión exitoso!");
       setFormData({ email: "", password: "" });
 
-      const userData = {
-        uid: userCredentials.user.uid,
-        email: userCredentials.user.email,
-        displayName: userCredentials.user.displayName,
-        emailVerified: userCredentials.user.emailVerified,
-      };
-
-      //Save the cookie info
-      Cookies.set("user", JSON.stringify(userData), { expires: 1 });
-
-      window.location.href = "/";
+      setTimeout(() => {
+        window.location.href =
+          perfil === "Administrador" || perfil === "Superadministrador"
+            ? "/admin"
+            : "/";
+      }, 1000);
     } catch (error) {
-      setError(error.code);
-      console.log(error.code, "Ocurrió un error. Intenta de nuevo.");
+      console.error("Error al iniciar sesión:", error);
+      toast.error("Credenciales inválidas o error de conexión.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
-        {error && (
-          <div className="mb-4 text-red-500 text-center text-sm">{error}</div>
-        )}
-        {success && (
-          <div className="mb-4 text-green-600 text-center text-sm">
-            {success}
-          </div>
-        )}
-        <form onSubmit={LoginUser}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block mb-1 font-medium">
+    <div
+      style={{ backgroundColor: "#FAFAF9" }}
+      className="flex items-center justify-center min-h-screen p-4"
+    >
+      <Toaster position="top-right" />
+
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderTop: "4px solid #2E7D32",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+        }}
+        className="w-full max-w-md rounded-lg p-8"
+      >
+        <div className="flex items-center justify-center mb-8">
+          <Leaf size={32} style={{ color: "#2E7D32" }} className="mr-2" />
+          <h1 style={{ color: "#333333" }} className="text-3xl font-bold">
+            Acceso
+          </h1>
+        </div>
+
+        <p style={{ color: "#8F9779" }} className="text-center text-sm mb-8">
+          Ingresa tu correo y contraseña para continuar
+        </p>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label
+              htmlFor="email"
+              style={{ color: "#333333" }}
+              className="block text-sm font-semibold mb-2"
+            >
               Correo electrónico
             </label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              className="border border-gray-300 p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-200"
-              onChange={handlehtmlFormData}
-              value={formData.email}
-              autoComplete="email"
-              required
-            />
+            <div className="relative">
+              <Mail
+                size={20}
+                style={{ color: "#8F9779" }}
+                className="absolute left-3 top-3"
+              />
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
+                style={{
+                  borderColor: "#E9E4D8",
+                  color: "#333333",
+                  "--tw-ring-color": "#A5D6A7",
+                }}
+                placeholder="tu@correo.com"
+              />
+            </div>
           </div>
 
-          <div className="mb-6">
-            <label htmlFor="password" className="block mb-1 font-medium">
+          <div>
+            <label
+              htmlFor="password"
+              style={{ color: "#333333" }}
+              className="block text-sm font-semibold mb-2"
+            >
               Contraseña
             </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              className="border border-gray-300 p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-200"
-              onChange={handlehtmlFormData}
-              value={formData.password}
-              autoComplete="current-password"
-              required
-            />
+            <div className="relative">
+              <Lock
+                size={20}
+                style={{ color: "#8F9779" }}
+                className="absolute left-3 top-3"
+              />
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full pl-10 pr-10 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
+                style={{
+                  borderColor: "#E9E4D8",
+                  color: "#333333",
+                  "--tw-ring-color": "#A5D6A7",
+                }}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3"
+              >
+                {showPassword ? (
+                  <EyeOff size={20} style={{ color: "#8F9779" }} />
+                ) : (
+                  <Eye size={20} style={{ color: "#8F9779" }} />
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+            disabled={loading}
+            style={{
+              backgroundColor: "#2E7D32",
+              color: "#ffffff",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#A5D6A7")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#2E7D32")}
+            className="w-full py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center mt-6"
           >
-            Iniciar sesión
+            {loading ? (
+              <div className="animate-spin">
+                <Lock size={20} />
+              </div>
+            ) : (
+              "Iniciar sesión"
+            )}
           </button>
         </form>
-        <div className="flex flex-col gap-1 items-center justify-center mt-5">
-          <p>¿No tienes una cuenta?</p>
-          <a href="/register" className="text-blue-400">
-            Registrarse
-          </a>
+
+        <div
+          style={{ backgroundColor: "#E9E4D8" }}
+          className="mt-6 p-4 rounded-lg text-center"
+        >
+          <p style={{ color: "#333333" }} className="text-sm">
+            ¿No tienes una cuenta?{" "}
+            <a
+              href="/register"
+              style={{ color: "#2E7D32" }}
+              className="font-semibold hover:underline"
+            >
+              Regístrate aquí
+            </a>
+          </p>
         </div>
       </div>
     </div>

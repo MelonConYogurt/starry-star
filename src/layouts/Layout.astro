@@ -1,8 +1,9 @@
 ---
-import DropdownCRUD from "../components/DropdownCRUD.jsx";
+import "../styles/global.css";
 ---
+
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -10,12 +11,26 @@ import DropdownCRUD from "../components/DropdownCRUD.jsx";
     <meta name="generator" content={Astro.generator} />
     <title>Astro Basics</title>
   </head>
-  <body class="">
-    <nav class="w-full h-fit p-2 border-b border-gray-200 flex justify-end gap-4 items-center">
-      <DropdownCRUD client:load />
-      <a href="/login" class="text-gray-700 hover:text-blue-600 transition">Login</a>
-      <a href="/profile" class="text-gray-700 hover:text-blue-600 transition">Profile</a>
-      <a href="/logout" class="text-gray-700 hover:text-red-600 transition">Logout</a>
+  <body class="bg-[#FAFAF9] text-[#333333]">
+    <nav
+      class="w-full h-fit px-8 py-4 border-b border-[#E9E4D8] flex justify-between items-center bg-white shadow-sm"
+    >
+      <div class="text-2xl font-bold text-[#2E7D32]">Logo</div>
+
+      <div class="flex gap-6 items-center">
+        <a
+          href="/admin"
+          class="text-[#333333] hover:text-[#2E7D32] transition-colors font-medium"
+        >
+          Dashboard
+        </a>
+        <a
+          href="/logout"
+          class="px-4 py-2 rounded-lg bg-[#2E7D32] text-white hover:bg-[#A5D6A7] hover:text-[#333333] transition-all font-medium"
+        >
+          Logout
+        </a>
+      </div>
     </nav>
 
     <slot />
@@ -27,6 +42,12 @@ import DropdownCRUD from "../components/DropdownCRUD.jsx";
   body {
     margin: 0;
     width: 100%;
-    height: 100%;
+    min-height: 100%;
+  }
+
+  /* Added global font styling */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+      sans-serif;
   }
 </style>

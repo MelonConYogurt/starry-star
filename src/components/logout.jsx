@@ -1,8 +1,6 @@
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useEffect } from "react";
-
-//Lib for cookies
 import Cookies from "js-cookie";
 
 export default function SingOut() {

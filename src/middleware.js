@@ -1,4 +1,5 @@
-const lockRoutes = ["/profile", "/"];
+
+const lockRoutes = ["/", "/profile", "/admin"];
 const unLockRouter = ["/login", "/register"];
 
 export function onRequest(context, next) {
@@ -16,13 +17,28 @@ export function onRequest(context, next) {
     }
   }
 
-  if (lockRoutes.includes(pathname)) {
-    if (!user) {
-      return Response.redirect(new URL("/login", url.origin));
+  // 🔒 Si intenta acceder a ruta privada sin login
+  if (lockRoutes.includes(pathname) && !user) {
+    return Response.redirect(new URL("/login", url.origin));
+  }
+
+  // 🔓 Evitar login/register si ya está logueado
+  if (unLockRouter.includes(pathname) && user) {
+    return Response.redirect(new URL("/", url.origin));
+  }
+
+  // 🚨 Si es admin y entra a /admin
+  if (pathname.startsWith("/admin")) {
+    if (
+      !user ||
+      (user.perfil !== "Administrador" && user.perfil !== "Superadministrador")
+    ) {
+      return Response.redirect(new URL("/", url.origin));
     }
   }
 
-  if (unLockRouter.includes(pathname) && user) {
+  // 🚨 Si es usuario normal y entra a /admin, redirigir
+  if (pathname.startsWith("/admin") && user?.perfil === "Usuario") {
     return Response.redirect(new URL("/", url.origin));
   }
 
