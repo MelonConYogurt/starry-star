@@ -1,8 +1,14 @@
 import "../styles/global.css";
 import { useEffect, useState } from "react";
 import { Edit2, Trash2, Plus, CheckCircle, XCircle } from "lucide-react";
+import Cookies from "js-cookie";
 
-export default function PerfilesAdmin({ token }) {
+export default function PerfilesAdmin() {
+  const userCookie = Cookies.get("user");
+  const user = userCookie ? JSON.parse(userCookie) : null;
+
+  const token = user.token;
+
   const [perfiles, setPerfiles] = useState([]);
   const [nombre, setNombre] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -82,6 +88,10 @@ export default function PerfilesAdmin({ token }) {
 
   return (
     <div className="space-y-6">
+      <h2 className="text-2xl font-bold" style={{ color: "#333333" }}>
+        Administrar perfiles
+      </h2>
+
       <form
         onSubmit={handleSubmit}
         className="rounded-lg p-6 flex flex-wrap gap-4 items-end shadow-sm transition-all"

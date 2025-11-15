@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import MenuComponent from "../components/MenuComponent.jsx";
 ---
 
 <!doctype html>
@@ -9,45 +10,14 @@ import "../styles/global.css";
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>Astro Basics</title>
+    <title>Panel</title>
   </head>
+
   <body class="bg-[#FAFAF9] text-[#333333]">
-    <nav
-      class="w-full h-fit px-8 py-4 border-b border-[#E9E4D8] flex justify-between items-center bg-white shadow-sm"
-    >
-      <div class="text-2xl font-bold text-[#2E7D32]">Logo</div>
+    <MenuComponent client:load />
 
-      <div class="flex gap-6 items-center">
-        <a
-          href="/admin"
-          class="text-[#333333] hover:text-[#2E7D32] transition-colors font-medium"
-        >
-          Dashboard
-        </a>
-        <a
-          href="/logout"
-          class="px-4 py-2 rounded-lg bg-[#2E7D32] text-white hover:bg-[#A5D6A7] hover:text-[#333333] transition-all font-medium"
-        >
-          Logout
-        </a>
-      </div>
-    </nav>
-
-    <slot />
+    <main class="p-4">
+      <slot />
+    </main>
   </body>
 </html>
-
-<style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    min-height: 100%;
-  }
-
-  /* Added global font styling */
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
-      sans-serif;
-  }
-</style>

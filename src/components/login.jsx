@@ -4,12 +4,17 @@ import { Mail, Lock, Eye, EyeOff, Leaf } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import Cookies from "js-cookie";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   function handleChange(e) {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -32,7 +37,6 @@ export default function LoginPage() {
         formData.password
       );
       const user = userCredentials.user;
-
       const token = await user.getIdToken();
 
       const res = await fetch(
@@ -77,6 +81,26 @@ export default function LoginPage() {
     }
   }
 
+  async function handlePasswordReset(e) {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast.error("Por favor, ingresa tu correo electrónico.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      toast.success(
+        "Correo de recuperación enviado. Revisa tu bandeja de entrada."
+      );
+      setResetEmail("");
+      setResetting(false);
+    } catch (error) {
+      console.error("Error al enviar correo de recuperación:", error);
+      toast.error("No se pudo enviar el correo. Verifica el email ingresado.");
+    }
+  }
+
   return (
     <div
       style={{ backgroundColor: "#FAFAF9" }}
@@ -103,27 +127,125 @@ export default function LoginPage() {
           Ingresa tu correo y contraseña para continuar
         </p>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label
-              htmlFor="email"
-              style={{ color: "#333333" }}
-              className="block text-sm font-semibold mb-2"
+        {!resetting ? (
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label
+                htmlFor="email"
+                style={{ color: "#333333" }}
+                className="block text-sm font-semibold mb-2"
+              >
+                Correo electrónico
+              </label>
+              <div className="relative">
+                <Mail
+                  size={20}
+                  style={{ color: "#8F9779" }}
+                  className="absolute left-3 top-3"
+                />
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
+                  style={{
+                    borderColor: "#E9E4D8",
+                    color: "#333333",
+                    "--tw-ring-color": "#A5D6A7",
+                  }}
+                  placeholder="tu@correo.com"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                style={{ color: "#333333" }}
+                className="block text-sm font-semibold mb-2"
+              >
+                Contraseña
+              </label>
+              <div className="relative">
+                <Lock
+                  size={20}
+                  style={{ color: "#8F9779" }}
+                  className="absolute left-3 top-3"
+                />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-10 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
+                  style={{
+                    borderColor: "#E9E4D8",
+                    color: "#333333",
+                    "--tw-ring-color": "#A5D6A7",
+                  }}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3"
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} style={{ color: "#8F9779" }} />
+                  ) : (
+                    <Eye size={20} style={{ color: "#8F9779" }} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setResetting(true)}
+                className="text-sm text-green-700 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                backgroundColor: "#2E7D32",
+                color: "#ffffff",
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#A5D6A7")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#2E7D32")}
+              className="w-full py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center mt-6"
             >
-              Correo electrónico
-            </label>
-            <div className="relative">
-              <Mail
-                size={20}
-                style={{ color: "#8F9779" }}
-                className="absolute left-3 top-3"
-              />
+              {loading ? (
+                <div className="animate-spin">
+                  <Lock size={20} />
+                </div>
+              ) : (
+                "Iniciar sesión"
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handlePasswordReset} className="space-y-5">
+            <div>
+              <label
+                htmlFor="resetEmail"
+                className="block text-sm font-semibold mb-2"
+                style={{ color: "#333333" }}
+              >
+                Ingresa tu correo para recuperar la contraseña
+              </label>
               <input
                 type="email"
-                id="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
+                id="resetEmail"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
                 style={{
                   borderColor: "#E9E4D8",
                   color: "#333333",
@@ -132,69 +254,27 @@ export default function LoginPage() {
                 placeholder="tu@correo.com"
               />
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              style={{ color: "#333333" }}
-              className="block text-sm font-semibold mb-2"
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg font-semibold transition-all duration-200 mt-4"
+              style={{
+                backgroundColor: "#2E7D32",
+                color: "#ffffff",
+              }}
             >
-              Contraseña
-            </label>
-            <div className="relative">
-              <Lock
-                size={20}
-                style={{ color: "#8F9779" }}
-                className="absolute left-3 top-3"
-              />
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full pl-10 pr-10 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
-                style={{
-                  borderColor: "#E9E4D8",
-                  color: "#333333",
-                  "--tw-ring-color": "#A5D6A7",
-                }}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3"
-              >
-                {showPassword ? (
-                  <EyeOff size={20} style={{ color: "#8F9779" }} />
-                ) : (
-                  <Eye size={20} style={{ color: "#8F9779" }} />
-                )}
-              </button>
-            </div>
-          </div>
+              Enviar correo de recuperación
+            </button>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              backgroundColor: "#2E7D32",
-              color: "#ffffff",
-            }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#A5D6A7")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#2E7D32")}
-            className="w-full py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center mt-6"
-          >
-            {loading ? (
-              <div className="animate-spin">
-                <Lock size={20} />
-              </div>
-            ) : (
-              "Iniciar sesión"
-            )}
-          </button>
-        </form>
+            <button
+              type="button"
+              onClick={() => setResetting(false)}
+              className="w-full py-2 text-sm text-gray-600 hover:underline"
+            >
+              Volver al inicio de sesión
+            </button>
+          </form>
+        )}
 
         <div
           style={{ backgroundColor: "#E9E4D8" }}

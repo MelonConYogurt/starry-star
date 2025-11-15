@@ -23,16 +23,24 @@ export default function RegisterPage() {
     telefono: "",
     email: "",
     password: "",
-    perfilId: "",
+    perfilId: "", 
   });
-  const [perfiles, setPerfiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:3000/api/perfiles")
       .then((res) => res.json())
-      .then(setPerfiles)
+      .then((data) => {
+        const perfilBase = data.find((p) => ["Usuario"].includes(p.nombre));
+        if (perfilBase) {
+          setForm((prev) => ({ ...prev, perfilId: perfilBase._id }));
+        } else {
+          toast.error(
+            "No se encontró el perfil base 'Usuario' en la base de datos."
+          );
+        }
+      })
       .catch(() => toast.error("Error al cargar perfiles"));
   }, []);
 
@@ -47,6 +55,10 @@ export default function RegisterPage() {
     }
     if (form.password.length < 6) {
       toast.error("La contraseña debe tener al menos 6 caracteres");
+      return false;
+    }
+    if (!form.perfilId) {
+      toast.error("No se pudo asignar el perfil base");
       return false;
     }
     return true;
@@ -143,7 +155,6 @@ export default function RegisterPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Nombre y Apellido */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
@@ -335,35 +346,6 @@ export default function RegisterPage() {
                 placeholder="+34 123 456 789"
               />
             </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="perfilId"
-              style={{ color: "#333333" }}
-              className="block text-sm font-semibold mb-2"
-            >
-              Perfil *
-            </label>
-            <select
-              id="perfilId"
-              name="perfilId"
-              value={form.perfilId}
-              onChange={handleChange}
-              style={{
-                borderColor: "#E9E4D8",
-                color: "#333333",
-              }}
-              className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition"
-              required
-            >
-              <option value="">Selecciona tu perfil</option>
-              {perfiles.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.nombre}
-                </option>
-              ))}
-            </select>
           </div>
 
           <button

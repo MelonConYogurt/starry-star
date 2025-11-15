@@ -15,7 +15,14 @@ import {
   User,
 } from "lucide-react";
 
-export default function UsersAdmin({ token }) {
+import Cookies from "js-cookie";
+
+export default function UsersAdmin() {
+  const userCookie = Cookies.get("user");
+  const user = userCookie ? JSON.parse(userCookie) : null;
+
+  const token = user.token;
+
   const [usuarios, setUsuarios] = useState([]);
   const [perfiles, setPerfiles] = useState([]);
   const [error, setError] = useState("");

@@ -12,8 +12,14 @@ import {
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
-export default function PersonasAdmin({ token }) {
+export default function PersonasAdmin() {
+  const userCookie = Cookies.get("user");
+  const user = userCookie ? JSON.parse(userCookie) : null;
+
+  const token = user.token;
+
   const [personas, setPersonas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -170,6 +176,9 @@ export default function PersonasAdmin({ token }) {
 
   return (
     <div className="space-y-6" style={{ backgroundColor: "#FAFAF9" }}>
+      <h2 className="text-2xl font-bold" style={{ color: "#333333" }}>
+        Administrar personas
+      </h2>
       <form
         onSubmit={handleSubmit}
         className="shadow-lg rounded-xl p-6"
